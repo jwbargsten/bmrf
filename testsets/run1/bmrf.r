@@ -15,8 +15,8 @@
 #
 # 3. Domain file
 
-#library(ROCR);
 library(Matrix);
+#library(ROCR);
 library(brglm);
 library(mvtnorm);	
 library(glmnet);
@@ -26,17 +26,11 @@ library(glmnet);
 
 source("bmrf_functions.r");
 
-f="testsets/run1/ExpMatAra.conv.filt2"
-FILEnet="testsets/run1/ExpMatAra.conv.filt2"
-FILEann="testsets/run1/extract_exp_tair_BP.lis.uppropagated.filt2"
-FILEclust="testsets/run1/TAIR10.ipr.filt2"
-outprobsfile="/tmp/ytest.out"
-
 
 # Load the data
 
-#bmrf = function(FILEnet, FILEann, FILEclust, outprobsfile) 
-#{
+bmrf = function(FILEnet, FILEann, FILEclust, outprobsfile) 
+{
     burnin = 20;
     niter = 20;
     
@@ -66,15 +60,10 @@ outprobsfile="/tmp/ytest.out"
     u = rowSums(L);
     U = which(u == 0);
         
-    tglm <- 0
-    tpost <- 0
-    tcal <- 0
     
     for(i in 1:ncol(L))
 	{
-        ta <- Sys.time()
-
-		cat(i,ncol(L), sep="/");			
+		cat(paste(i, " "));			
 		#Make the elastic net fitting and predictions:
 		Lsingle = L[,i];
 		Lsingle[U] = -1;
@@ -84,24 +73,18 @@ outprobsfile="/tmp/ytest.out"
 		{
 			next;
 		}
-#browser()
-
-        tglm <- tglm + (Sys.time() - ta)
         
 		# Prepare the Labellings vector
         
 
 		# Run BMRFz 
-        ta <- Sys.time()
 		posteriors = try(BMRFz(A=A, L = Lsingle, D = glmnetpred, burnin = burnin, niter = niter), silent=FALSE);
 		if(class(posteriors) == 'try-error')
 		{
 			# If BMRFz does not run for any reason, report the EN probs only
 		 	next;
 		}
-        tpost <- tpost + (Sys.time() - ta)
 		
-        ta <- Sys.time()
 		posteriors = calibrate(posteriors);
 		
 		names(posteriors) = rownames(A);
@@ -111,13 +94,9 @@ outprobsfile="/tmp/ytest.out"
 		go = rep(x=colnames(L)[i], times=length(posteriors));
 		probs = cbind(names(posteriors), go, posteriors);
 		write.table(probs, file= outprobsfile, append=TRUE, quote=F, row.names=F, col.names=F, sep = "\t");			
-        tcal <- tcal + (Sys.time() - ta)
-        cat("  tglm: ", tglm/i, "  tpost: " , tpost/i, "  tcal: ", tcal/i, "\n" )
 	}
-    i <- ncol(L)
-    cat("  tglm: ", tglm/i, "  tpost: " , tpost/i, "  tcal: ", tcal/i, "\n" )
 	
-#}
+}
 
     
     

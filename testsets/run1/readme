@@ -1,0 +1,15 @@
+cp ../data/planet/download/ExpMatAra.conv.filt2 .
+python filter.py ExpMatAra.conv.filt2 ../data/GO/extract_exp_tair_BP.lis.uppropagated.filt > extract_exp_tair_BP.lis.uppropagated.filt2 
+python filter.py ExpMatAra.conv.filt2 ../data/domains/TAIR10.ipr >& TAIR10.ipr.filt2 &
+R --no-save < bmrf_batch.r >& bmrf_batch.out &
+
+more ytest.out | awk '{print $2}' |sort -u |wc -l
+635
+
+
+rerunning:
+1714312 0.55125 run1.csh   adj          r     09/06/2012 16:27:25 all.q@compute-1-13.local           1
+
+./getbestthresholdpergo.csh getthreshold.out >& getbestthresholdpergo.out &
+ 1123  ./getbestthresholdpergo_spec0.75.csh getthreshold.out | awk 'NF>1' > getbestthresholdpergo_spec0.75.out &
+ 1124  history | tail -2 >> readme 

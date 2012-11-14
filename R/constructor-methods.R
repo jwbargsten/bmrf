@@ -1,0 +1,131 @@
+read.bmrf <- function(
+  net.file,
+  go.file,
+  fd.file,
+  verbose=FALSE,
+  ...
+) {
+  neti <- read.net(net.file, verbose=verbose)
+  go <- read.terms(go.file, neti$protein.idcs, verbose=verbose)
+  fd <- read.terms(fd.file, neti$protein.idcs, verbose=verbose)
+
+  return(bmrf(neti$net, go$mat, fd$mat, ...))
+}
+
+bmrf <- function(
+  net,
+  go,
+  fd,
+  burnin = 20,
+  niter = 20,
+  minGOsize = 20,
+  maxGOsize = (0.9 * nrow(net)),
+  minFDsize = 20,
+  maxFDsize = (0.9 * nrow(net)),
+  verbose = FALSE
+) {
+
+  ## take the GO-terms that are neither very general nor very sparse
+  go.cs <- colSums(go);
+  go <- go[,go.cs >= minGOsize & go.cs <= maxGOsize]
+
+  ## take the functional domains that are neither very general nor very sparse
+  fd.cs <- colSums(fd)
+  fd <- fd[,fd.cs >= minFDsize & fd.cs <= maxFDsize]
+
+  u = which(rowSums(go) == 0);
+  
+  new("BMRF",
+    net=net,
+    go=go,
+    fd=fd,
+    burnin=as.integer(burnin),
+    niter=as.integer(niter),
+    maxGOsize=maxGOsize,
+    minGOsize=minGOsize,
+    maxFDsize=maxFDsize,
+    minFDsize=minFDsize,
+    unknown.idcs=u,
+    verbose=verbose
+  )
+}
+
+read.net <- function(f, verbose=FALSE) {
+	data = read.table(f, sep = "\t");
+  protein.ids.uniq = sort(unique(c(levels(data[,1]), levels(data[,2]))))
+
+  idcs = seq(along=protein.ids.uniq)
+  names(idcs) = protein.ids.uniq
+  l = length(protein.ids.uniq)
+
+  protein.ids.a = as.character(data[,1]);
+  protein.ids.b = as.character(data[,2]);
+
+	net = sparseMatrix(
+    i=idcs[protein.ids.a],
+    j=idcs[protein.ids.b],
+    x=1,
+    dims=c(l,l)
+  )
+
+	net = net + t(net)
+	rownames(net) = protein.ids.uniq
+	colnames(net) = protein.ids.uniq
+  if(verbose)
+    cat("reading network OK\n")
+
+	return(list(net=net, protein.idcs=idcs));
+}
+
+
+read.terms = function(f, p.idcs, verbose=FALSE) {
+	data = read.table(f, sep = "\t");
+    
+  terms.uniq = sort(levels(data[,2]))
+
+  t.idcs = seq(along=terms.uniq)
+  names(t.idcs) = terms.uniq
+
+  protein.ids = as.character(data[,1]);
+  terms = as.character(data[,2]);
+
+	L = sparseMatrix(
+    i = p.idcs[protein.ids],
+    j = t.idcs[terms],
+    x = 1,
+    dims = c(length(p.idcs), length(t.idcs))
+  )	
+
+	L@x[] = 1
+	
+	rownames(L) = names(p.idcs)
+	colnames(L) = names(t.idcs)
+
+  if(verbose)
+    cat("reading terms OK\n")
+
+	return(list(mat=L, term.idcs=t.idcs));
+}
+
+setMethod("show", "BMRF", function(object) {
+    
+    cat("BMRF data set\n")
+    cat("------------------------------------------------------------------------------\n")
+    cat("burnin: ", object@burnin, "\n")
+    cat("iterations: ", object@niter, "\n")
+    cat("GO size range: (", object@minGOsize, ",", object@maxGOsize, ")\n")
+    cat("FD size range: (", object@minFDsize, ",", object@maxFDsize, ")\n")
+    cat("------------------------------------------------------------------------------\n")
+    print.matrix.head("network", object@net)
+    print.matrix.head("GO-terms", object@go)
+    print.matrix.head("func. domains", object@fd)
+  }
+)
+
+print.matrix.head <- function(name, mat) {
+  d <- dim(mat)
+  cat(name," (", d[1], ",", d[2], "):\n")
+  numRows <- min(6, d[1])
+  numCols <- min(6, d[2])
+  print(mat[1:numRows, 1:numCols])
+}
