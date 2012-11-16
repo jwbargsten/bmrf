@@ -9,15 +9,13 @@ read.bmrf <- function(
   go <- read.terms(go.file, neti$protein.idcs, verbose=verbose)
   fd <- read.terms(fd.file, neti$protein.idcs, verbose=verbose)
 
-  return(bmrf(neti$net, go$mat, fd$mat, ...))
+  return(bmrf(neti$net, go$m, fd$m, ...))
 }
 
 bmrf <- function(
   net,
   go,
   fd,
-  burnin = 20,
-  niter = 20,
   minGOsize = 20,
   maxGOsize = (0.9 * nrow(net)),
   minFDsize = 20,
@@ -39,8 +37,6 @@ bmrf <- function(
     net=net,
     go=go,
     fd=fd,
-    burnin=as.integer(burnin),
-    niter=as.integer(niter),
     maxGOsize=maxGOsize,
     minGOsize=minGOsize,
     maxFDsize=maxFDsize,
@@ -67,8 +63,10 @@ read.net <- function(f, verbose=FALSE) {
     x=1,
     dims=c(l,l)
   )
-
+  ## In case it is not symmetric, symmetrize it
 	net = net + t(net)
+  ## In case it is not binary, binarize it.
+  net@x[] = 1
 	rownames(net) = protein.ids.uniq
 	colnames(net) = protein.ids.uniq
   if(verbose)
@@ -104,20 +102,24 @@ read.terms = function(f, p.idcs, verbose=FALSE) {
   if(verbose)
     cat("reading terms OK\n")
 
-	return(list(mat=L, term.idcs=t.idcs));
+	return(list(m=L, t.idcs=t.idcs));
 }
 
 setMethod("show", "BMRF", function(object) {
     
+    sep <- "------------------------------------------------------------------------------\n"
     cat("BMRF data set\n")
-    cat("------------------------------------------------------------------------------\n")
-    cat("burnin: ", object@burnin, "\n")
-    cat("iterations: ", object@niter, "\n")
-    cat("GO size range: (", object@minGOsize, ",", object@maxGOsize, ")\n")
-    cat("FD size range: (", object@minFDsize, ",", object@maxFDsize, ")\n")
-    cat("------------------------------------------------------------------------------\n")
+    cat(sep)
+    cat("         Num. of proteins: ", dim(object@net)[1], "\n", sep="")
+    cat("Num. of unannot. proteins: ", length(object@unknown.idcs), "\n", sep="")
+    cat("\n")
+    cat("GO size range: (", object@minGOsize, ",", object@maxGOsize, ")\n", sep="")
+    cat("FD size range: (", object@minFDsize, ",", object@maxFDsize, ")\n", sep="")
+    cat(sep)
     print.matrix.head("network", object@net)
+    cat(sep)
     print.matrix.head("GO-terms", object@go)
+    cat(sep)
     print.matrix.head("func. domains", object@fd)
   }
 )

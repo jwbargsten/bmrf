@@ -1,7 +1,14 @@
 exportPattern("^[[:alpha:]]+")
 exportMethods(
-    "show" 
+  "show" 
 )
 exportClasses(
-    "BMRF" 
+  "BMRF" 
 )
+import(
+  "Matrix",
+  "glmnet",
+  "mvtnorm",
+  "brglm"
+)
+
