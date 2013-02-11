@@ -26,14 +26,15 @@ library(glmnet);
 
 source("bmrf_functions.r");
 
-f="testsets/run1/ExpMatAra.conv.filt2"
-FILEnet="testsets/run1/ExpMatAra.conv.filt2"
-FILEann="testsets/run1/extract_exp_tair_BP.lis.uppropagated.filt2"
-FILEclust="testsets/run1/TAIR10.ipr.filt2"
+f="testsets/run1/ExpMatAra.conv.filt2.gz"
+FILEnet="testsets/run1/ExpMatAra.conv.filt2.gz"
+FILEann="testsets/run1/extract_exp_tair_BP.lis.uppropagated.filt2.gz"
+FILEclust="testsets/run1/TAIR10.ipr.filt2.gz"
 outprobsfile="/tmp/ytest.out"
 
 
 # Load the data
+set.seed(10)
 
 #bmrf = function(FILEnet, FILEann, FILEclust, outprobsfile) 
 #{
@@ -113,6 +114,7 @@ outprobsfile="/tmp/ytest.out"
 		write.table(probs, file= outprobsfile, append=TRUE, quote=F, row.names=F, col.names=F, sep = "\t");			
         tcal <- tcal + (Sys.time() - ta)
         cat("  tglm: ", tglm/i, "  tpost: " , tpost/i, "  tcal: ", tcal/i, "\n" )
+    if(i == 3) break
 	}
     i <- ncol(L)
     cat("  tglm: ", tglm/i, "  tpost: " , tpost/i, "  tcal: ", tcal/i, "\n" )

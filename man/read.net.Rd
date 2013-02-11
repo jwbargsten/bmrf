@@ -2,7 +2,7 @@
 \alias{read.net}
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{
-%%  ~~function to do ... ~~
+read in network from file
 }
 \description{
 %%  ~~ A concise (1-5 lines) description of what the function does. ~~

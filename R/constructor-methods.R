@@ -13,9 +13,9 @@ read.bmrf <- function(
 }
 
 bmrf <- function(
-  net,
-  go,
-  fd,
+  net, ## network
+  go, ## training data
+  fd, ## functional domains
   minGOsize = 20,
   maxGOsize = (0.9 * nrow(net)),
   minFDsize = 20,
@@ -63,6 +63,7 @@ read.net <- function(f, verbose=FALSE) {
     x=1,
     dims=c(l,l)
   )
+
   ## In case it is not symmetric, symmetrize it
 	net = net + t(net)
   ## In case it is not binary, binarize it.
@@ -94,6 +95,7 @@ read.terms = function(f, p.idcs, verbose=FALSE) {
     dims = c(length(p.idcs), length(t.idcs))
   )	
 
+  ## In case it is not binary, binarize it.
 	L@x[] = 1
 	
 	rownames(L) = names(p.idcs)

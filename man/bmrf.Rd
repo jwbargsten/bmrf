@@ -2,6 +2,7 @@
 \alias{bmrf}
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{
+  BMRF 
 %%  ~~function to do ... ~~
 }
 \description{

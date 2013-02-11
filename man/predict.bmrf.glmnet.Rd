@@ -2,7 +2,7 @@
 \alias{predict.bmrf.glmnet}
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{
-%%  ~~function to do ... ~~
+ elastic net prediction
 }
 \description{
 %%  ~~ A concise (1-5 lines) description of what the function does. ~~
