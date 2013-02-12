@@ -27,7 +27,10 @@ predict.bmrf <- function(b, burnin=20, niter=20, file=NULL, format=c("3col", "lo
       next
 
     ## run BMRFz
-    p = predict.bmrf_go(bmrf=b, go.proteins=go.proteins, fd.model=glm.enet.pred, burnin=burnin, niter=niter)
+    p = try(predict.bmrf_go(bmrf=b, go.proteins=go.proteins, fd.model=glm.enet.pred, burnin=burnin, niter=niter))
+    if(class(p) == 'try-error')
+      next
+
     p = .calibrate(p)
 
     if(is.null(file)) {
@@ -188,15 +191,6 @@ predict.bmrf_go <- function(bmrf, go.proteins, fd.model, burnin, niter, initZlen
 	
 	probs = probs/counter;
 	return(probs);
-}
-
-gibbssample.labels <- function(params, data, num.unknowns) {
-		y =  params[1] + data[,1]*params[,2] + data[,2]*params[,3] + data[,3]*params[,4];
-
-		d = (1/(1 + exp(-y)))  - runif(num.unknowns);
-		L[unknowns[d >= 0]] = 1;
-		L[unknowns[d  < 0]] = 0;	
-
 }
 
 predict.bmrf_glmnet <- function(bmrf, go.idx, dfmax) {
