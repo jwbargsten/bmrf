@@ -14,7 +14,7 @@ predict.bmrf <- function(b, burnin=20, niter=20, file=NULL, format=c("3col", "lo
       cat("", sep="", file=file)
 
   if(verbose)
-    cat("Number of GO-terms to predict: ", ncol(b@go), sep="", file=stderr())
+    message(paste("Number of GO-terms to predict: ", ncol(b@go), sep=""))
 
   for(i in 1:ncol(b@go)) {
     go.proteins <- b@go[,i]
@@ -57,7 +57,7 @@ predict.bmrf <- function(b, burnin=20, niter=20, file=NULL, format=c("3col", "lo
   }
   options(o)
 
-  if(verbose) cat(" finished\n", sep="", file=stderr())
+  if(verbose) message(paste(" finished\n", sep=""))
 
   result
 }
@@ -201,21 +201,24 @@ predict.bmrf_glmnet <- function(bmrf, go.idx, dfmax) {
 
   #Fit for the common set of proteins (since for them there is Y and X for the regression fitting step)
   f = try(
-    cv.glmnet(
-      y = yf,
-      x = xf,
-      family = "binomial",
-      dfmax = dfmax,
-      alpha=0.5,
-      maxit=1000,
-      type.measure="auc"
+    suppressWarnings(
+      cv.glmnet(
+        y = yf,
+        x = xf,
+        family = "binomial",
+        dfmax = dfmax,
+        alpha=0.5,
+        maxit=1000,
+        type.measure="auc"
+      )
     )
   )
 
   if(class(f) == 'try-error')
     return(NULL)
 
-  yhat = try(predict(f, bmrf@fd, s = "lambda.min"))
+  
+  yhat = try(suppressWarnings(predict(f, bmrf@fd, s = "lambda.min")))
   names(yhat) = rownames(bmrf@fd);
 
   if(class(yhat) == 'try-error')

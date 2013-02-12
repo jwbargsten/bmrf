@@ -73,7 +73,7 @@ read.net <- function(f, verbose=FALSE) {
 	rownames(net) = protein.ids.uniq
 	colnames(net) = protein.ids.uniq
   if(verbose)
-    cat("reading network OK\n")
+    message("reading network OK")
 
 	return(list(net=net, protein.idcs=idcs));
 }
@@ -104,7 +104,7 @@ read.terms = function(f, p.idcs, verbose=FALSE) {
 	colnames(L) = names(t.idcs)
 
   if(verbose)
-    cat("reading terms OK\n")
+    message("reading terms OK")
 
 	return(list(m=L, t.idcs=t.idcs));
 }
