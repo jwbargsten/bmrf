@@ -25,14 +25,16 @@ bmrf <- function(
 
   ## take the GO-terms that are neither very general nor very sparse
   go.cs <- colSums(go);
+  stopifnot(sum(go.cs >= minGOsize & go.cs <= maxGOsize) > 0)
   go <- go[,go.cs >= minGOsize & go.cs <= maxGOsize]
 
   ## take the functional domains that are neither very general nor very sparse
   fd.cs <- colSums(fd)
+  stopifnot(sum(fd.cs >= minGOsize & fd.cs <= maxGOsize) > 0)
   fd <- fd[,fd.cs >= minFDsize & fd.cs <= maxFDsize]
 
   u = which(rowSums(go) == 0);
-  
+
   new("BMRF",
     net=net,
     go=go,
@@ -79,7 +81,7 @@ read.net <- function(f, verbose=FALSE) {
 
 read.terms = function(f, p.idcs, verbose=FALSE) {
 	data = read.table(f, sep = "\t");
-    
+
   terms.uniq = sort(levels(data[,2]))
 
   t.idcs = seq(along=terms.uniq)
@@ -93,11 +95,11 @@ read.terms = function(f, p.idcs, verbose=FALSE) {
     j = t.idcs[terms],
     x = 1,
     dims = c(length(p.idcs), length(t.idcs))
-  )	
+  )
 
   ## In case it is not binary, binarize it.
 	L@x[] = 1
-	
+
 	rownames(L) = names(p.idcs)
 	colnames(L) = names(t.idcs)
 
@@ -108,7 +110,7 @@ read.terms = function(f, p.idcs, verbose=FALSE) {
 }
 
 setMethod("show", "BMRF", function(object) {
-    
+
     sep <- "------------------------------------------------------------------------------\n"
     cat("BMRF data set\n")
     cat(sep)

@@ -1,7 +1,7 @@
 #!/usr/bin/env Rscript
 
 
-source("bmrf.r"); 
+source("bmrf.R"); 
 
 args <- commandArgs(T)
 

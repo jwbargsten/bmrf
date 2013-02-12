@@ -3,6 +3,7 @@ predict.bmrf <- function(b, burnin=20, niter=20, file=NULL, format=c("3col", "lo
 
   format <- match.arg(format)
   o <- options()
+
   result <- list()
 
   ## write header to output file if desired
@@ -11,6 +12,9 @@ predict.bmrf <- function(b, burnin=20, niter=20, file=NULL, format=c("3col", "lo
       cat("go", paste0("\t", rownames(b@go)), "\n", sep="", file=file)
     else
       cat("", sep="", file=file)
+
+  if(verbose)
+    cat("Number of GO-terms to predict: ", ncol(b@go), sep="", file=stderr())
 
   for(i in 1:ncol(b@go)) {
     go.proteins <- b@go[,i]
@@ -46,7 +50,6 @@ predict.bmrf <- function(b, burnin=20, niter=20, file=NULL, format=c("3col", "lo
         )
       )
     }
-    if(i == 5) break
     if(verbose) cat(".", sep="", file=stderr())
   }
   options(o)

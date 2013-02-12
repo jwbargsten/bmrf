@@ -1,0 +1,7 @@
+wget ftp://ftp.arabidopsis.org/home/tair/Ontologies/Gene_Ontology/ATH_GO_GOSLIM.txt.gz
+wget ftp://ftp.arabidopsis.org/home/tair/Proteins/Domains/TAIR10_all.domains
+
+Arabidopsis Interactome Mapping Consortium. (Dreze M, Carvunis AR, Charloteaux B, Galli M, Pevzner SJ, Tasan M co-first authors; Braun P, Vidal M, Ecker JR, Hill DE co-corresponding authors)
+Evidence for network evolution in an Arabidopsis interactome map.
+Science 2011; 333:601-7.
+wget http://interactome.dfci.harvard.edu/A_thaliana/doc/AI_interactions.xls
