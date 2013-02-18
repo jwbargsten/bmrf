@@ -31,7 +31,7 @@ predict.bmrf <- function(b, burnin=20, niter=20, file=NULL, format=c("3col", "lo
     if(class(p) == 'try-error')
       next
 
-    p = .calibrate(p)
+    p = .calibrate_logitR(p)
 
     if(is.null(file)) {
       result[[i]] <- list(go=colnames(b@go)[i], p=p)
@@ -227,7 +227,7 @@ predict.bmrf_glmnet <- function(bmrf, go.idx, dfmax) {
   return(yhat);
 }
 
-.calibrate = function(P)
+.calibrate_logitR = function(P)
 {
 	#Calibrate the input probabilities
     P[P >= 1 - (1e-10)] = 1- (1e-10);
