@@ -3,11 +3,14 @@ read.bmrf <- function(
   go.file,
   fd.file,
   verbose=FALSE,
+  net.header=FALSE,
+  go.header=FALSE,
+  fd.header=FALSE,
   ...
 ) {
-  neti <- read.net(net.file, verbose=verbose)
-  go <- read.terms(go.file, neti$protein.idcs, verbose=verbose)
-  fd <- read.terms(fd.file, neti$protein.idcs, verbose=verbose)
+  neti <- read.net(net.file, verbose=verbose, header=net.header)
+  go <- read.terms(go.file, neti$protein.idcs, verbose=verbose, header=go.header)
+  fd <- read.terms(fd.file, neti$protein.idcs, verbose=verbose, header=fd.header)
 
   return(bmrf(neti$net, go$m, fd$m, ...))
 }
@@ -48,8 +51,8 @@ bmrf <- function(
   )
 }
 
-read.net <- function(f, verbose=FALSE) {
-	data = read.table(f, sep = "\t");
+read.net <- function(f, header=FALSE, verbose=FALSE) {
+	data = read.table(f, sep = "\t", header=header)
   protein.ids.uniq = sort(unique(c(levels(data[,1]), levels(data[,2]))))
 
   idcs = seq(along=protein.ids.uniq)
@@ -79,8 +82,8 @@ read.net <- function(f, verbose=FALSE) {
 }
 
 
-read.terms = function(f, p.idcs, verbose=FALSE) {
-	data = read.table(f, sep = "\t");
+read.terms = function(f, p.idcs, header=FALSE, verbose=FALSE) {
+	data = read.table(f, sep = "\t", header=header)
 
   terms.uniq = sort(levels(data[,2]))
 
