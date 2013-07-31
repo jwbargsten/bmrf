@@ -23,22 +23,25 @@ predict.bmrf <- function(b, burnin=20, niter=20, file=NULL, format=c("3col", "lo
 		## make the elastic net fitting and predictions for the functional domains (fd).
     glm.enet.pred <- predict.bmrf_glmnet(bmrf=b, go.idx=i, dfmax = (ncol(b@fd)-1))
 
-    if(is.null(glm.enet.pred))
+    if(is.null(glm.enet.pred)) {
+      warning(term_name, ": could not fit elastic net, skipping")
       next
+    }
 
+    term_name <- colnames(b@go)[i]
     ## run BMRFz
-    p = try(predict.bmrf_go(bmrf=b, go.proteins=go.proteins, fd.model=glm.enet.pred, burnin=burnin, niter=niter))
+    p = try(predict.bmrf_go(bmrf=b, go.proteins=go.proteins, fd.predicted=glm.enet.pred, burnin=burnin, niter=niter, term_name=term_name))
     if(class(p) == 'try-error')
       next
 
     p = .calibrate_logitR(p)
 
     if(is.null(file)) {
-      result[[i]] <- list(go=colnames(b@go)[i], p=p)
+      result[[i]] <- list(go=term_name, p=p)
     } else {
       switch(format, 
         "3col" = cat(
-            paste(names(p), rep(colnames(b@go)[i], length(p)),  p, sep="\t"),
+            paste(names(p), rep(term_name, length(p)),  p, sep="\t"),
             sep="\n",
             file=file,
             append=TRUE
@@ -62,7 +65,7 @@ predict.bmrf <- function(b, burnin=20, niter=20, file=NULL, format=c("3col", "lo
   result
 }
 
-predict.bmrf_go <- function(bmrf, go.proteins, fd.model, burnin, niter, initZlength=30) {
+predict.bmrf_go <- function(bmrf, go.proteins, fd.predicted, burnin, niter, term_name, initZlength=30) {
 #	
 #	#---------------------------------------------------------
 #	# Construct the schedules for reporting things
@@ -73,7 +76,7 @@ predict.bmrf_go <- function(bmrf, go.proteins, fd.model, burnin, niter, initZlen
 #	
   A <- bmrf@net
   L <- go.proteins
-  D <- fd.model
+  D <- fd.predicted
 	titer = burnin + niter;
 	genrep.schd    = seq(from = 1, to = titer, by = 100);
 	simstor.schd   = seq(from = 1, to = titer, by = 5);	
@@ -100,13 +103,28 @@ predict.bmrf_go <- function(bmrf, go.proteins, fd.model, burnin, niter, initZlen
 	regtable = as.data.frame(cbind(Lk, M1,NS, Dalphak));
 	colnames(regtable) = c("L", "M1", "NS", "Dalpha");
 	
-	regtable.fit = brglm(regtable$L ~ regtable$M1 + regtable$NS + regtable$Dalpha,
-						family=binomial(link = "logit"), 
-						method = "brglm.fit");
 
+	regtable.fit = brglm(L ~ M1 + NS + Dalpha,
+						family=binomial(link = "logit"), 
+						method = "brglm.fit", data=regtable);
+
+  if(any(is.na(regtable.fit$coefficients)))
+    warning(term_name, ": brglm has NA coefficients - ",
+      paste0(names(regtable.fit$coefficients)[is.na(regtable.fit$coefficients)], collapse=", ")
+    )
 	
+  if (!regtable.fit$converged) {
+    warning(term_name, ": brglm fitting did not converge")
+  }
+
+  if(length(regtable.fit$coefficients) != nrow(vcov(regtable.fit))) {
+    warning(term_name, ": rmvnorm dimensions of mean and sigma are not consistent, skipping GO-term")
+  }
+
+
 	Z = rmvnorm(mean = regtable.fit$coefficients, 
 							sigma=vcov(regtable.fit), n=initZlength);
+
 							
 	MRFparams = as.vector(regtable.fit$coefficients);
 
@@ -137,7 +155,7 @@ predict.bmrf_go <- function(bmrf, go.proteins, fd.model, burnin, niter, initZlen
 	for(t in 1:titer)
 	{
 
-		t1 = proc.time();
+		#t1 = proc.time();
 		
 		M1 = as.vector(Au %*% L);
 
@@ -214,15 +232,19 @@ predict.bmrf_glmnet <- function(bmrf, go.idx, dfmax) {
     )
   )
 
-  if(class(f) == 'try-error')
+  if(class(f) == 'try-error') {
+    warning("cv.glmnet fitting not successful")
     return(NULL)
+  }
 
   
   yhat = try(suppressWarnings(predict(f, bmrf@fd, s = "lambda.min")))
   names(yhat) = rownames(bmrf@fd);
 
-  if(class(yhat) == 'try-error')
+  if(class(yhat) == 'try-error') {
+    warning("cv.glmnet prediction not successful")
     return(NULL)
+  }
 
   return(yhat);
 }
