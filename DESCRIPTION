@@ -4,7 +4,7 @@ Title: predict biological process with bayesian markov random fields
 Version: 0.1
 Date: 2012-11-16
 Author: Joachim Bargsten
-Maintainer: Who to complain to <yourfault@somewhere.net>
-Description: More about what it does (maybe more than one line)
-License: GPL
+Maintainer: Who to complain to <wissenschaft at bargsten dot org>
+Description: predict biological process with bayesian markov random fields
+License: MIT
 Depends: methods, Matrix, glmnet, mvtnorm, brglm
