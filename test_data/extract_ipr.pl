@@ -5,7 +5,7 @@ use strict;
 use 5.010;
 use List::MoreUtils qw/uniq/;
 #use Data::Printer;
-use Gonzales::Util::Cerial;
+use Bio::Gonzales::Util::Cerial;
 
 use Bio::Gonzales::Matrix::IO qw(mslurp mspew);
 

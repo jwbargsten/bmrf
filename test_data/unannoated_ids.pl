@@ -5,7 +5,7 @@ use strict;
 use 5.010;
 use Data::Dumper;
 use Bio::Gonzales::Matrix::IO qw(mslurp);
-use Gonzales::Util::Cerial;
+use Bio::Gonzales::Util::Cerial;
 
 
 
