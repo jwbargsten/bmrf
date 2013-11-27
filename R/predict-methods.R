@@ -19,16 +19,17 @@ predict.bmrf <- function(b, burnin=20, niter=20, file=NULL, format=c("3col", "lo
   for(i in 1:ncol(b@go)) {
     go.proteins <- b@go[,i]
     go.proteins[b@unknown.idcs] = -1
+    term_name <- colnames(b@go)[i]
 
 		## make the elastic net fitting and predictions for the functional domains (fd).
     glm.enet.pred <- predict.bmrf_glmnet(bmrf=b, go.idx=i, dfmax = (ncol(b@fd)-1))
+
 
     if(is.null(glm.enet.pred)) {
       warning(term_name, ": could not fit elastic net, skipping")
       next
     }
 
-    term_name <- colnames(b@go)[i]
     ## run BMRFz
     p = try(predict.bmrf_go(bmrf=b, go.proteins=go.proteins, fd.predicted=glm.enet.pred, burnin=burnin, niter=niter, term_name=term_name))
     if(class(p) == 'try-error')
