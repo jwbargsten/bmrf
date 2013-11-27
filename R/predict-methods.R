@@ -22,13 +22,19 @@ predict.bmrf <- function(b, burnin=20, niter=20, file=NULL, format=c("3col", "lo
     term_name <- colnames(b@go)[i]
 
 		## make the elastic net fitting and predictions for the functional domains (fd).
-    glm.enet.pred <- predict.bmrf_glmnet(bmrf=b, go.idx=i, dfmax = (ncol(b@fd)-1))
-
-
-    if(is.null(glm.enet.pred)) {
-      warning(term_name, ": could not fit elastic net, skipping")
-      next
+    ## set it to NULL if error, NA is used for situations where the fd stuff is excluded on purpose
+    if(all(is.na(b@fd))) {
+      warning(term_name, ": functional domains are not used for prediction", call.=FALSE)
+      glm.enet.pred <- rep(0, length(go.proteins))
+      names(glm.enet.pred) <- names(go.proteins)
+    } else {
+      glm.enet.pred <- predict.bmrf_glmnet(bmrf=b, go.idx=i, dfmax = (ncol(b@fd)-1))
+      if(is.null(glm.enet.pred)) {
+        warning(term_name, ": could not fit elastic net, skipping", call.=FALSE)
+        next
+      }
     }
+
 
     ## run BMRFz
     p = try(predict.bmrf_go(bmrf=b, go.proteins=go.proteins, fd.predicted=glm.enet.pred, burnin=burnin, niter=niter, term_name=term_name))
@@ -77,7 +83,7 @@ predict.bmrf_go <- function(bmrf, go.proteins, fd.predicted, burnin, niter, term
 #
   A <- bmrf@net
   L <- go.proteins
-  D <- fd.predicted
+	Dalpha = fd.predicted
 	titer = burnin + niter;
 	genrep.schd    = seq(from = 1, to = titer, by = 100);
 	simstor.schd   = seq(from = 1, to = titer, by = 5);
@@ -92,8 +98,8 @@ predict.bmrf_go <- function(bmrf, go.proteins, fd.predicted, burnin, niter, term
 
 
 	#Domains
+  #D <- fd.predicted
 #	Dalpha = glmnetDalpha(L,D, 10)
-	Dalpha = D;
 	# Initialize MRF parameters
 
 	M1 = as.vector(A[knowns,knowns] %*% L[knowns]);
@@ -111,11 +117,12 @@ predict.bmrf_go <- function(bmrf, go.proteins, fd.predicted, burnin, niter, term
 
   if(any(is.na(regtable.fit$coefficients)))
     warning(term_name, ": brglm has NA coefficients - ",
-      paste0(names(regtable.fit$coefficients)[is.na(regtable.fit$coefficients)], collapse=", ")
+      paste0(names(regtable.fit$coefficients)[is.na(regtable.fit$coefficients)], collapse=", "),
+      call.=FALSE
     )
 
   if (!regtable.fit$converged) {
-    warning(term_name, ": brglm fitting did not converge")
+    warning(term_name, ": brglm fitting did not converge", call.=FALSE)
   }
 
   rt.coeff <- regtable.fit$coefficients
@@ -125,7 +132,7 @@ predict.bmrf_go <- function(bmrf, go.proteins, fd.predicted, burnin, niter, term
 
   ## if Dalpha is NA, it contains no information and gets excluded from the model (aka set to 0)
   if(is.na(rt.coeff["Dalpha"])) {
-    warning(term_name, ": rmvnorm dimensions of mean and sigma are not consistent, skipping GO-term")
+    warning(term_name, ": rmvnorm dimensions of mean and sigma are not consistent, Dalpha is NA. Excluding fd.", call.=FALSE)
     Z = rmvnorm(mean=rt.coeff[- which(names(rt.coeff) == "Dalpha")], sigma=rt.vcov, n=initZlength);
     Z <- cbind(Z, Dalpha=0)
 
@@ -229,7 +236,8 @@ predict.bmrf_glmnet <- function(bmrf, go.idx, dfmax) {
             ifelse(yf[1] == 1, "ALL", "NO"),
             " proteins with existing labels (known proteins) are associated with ",
             colnames(bmrf@go)[go.idx],
-            ", skipping term."
+            ", skipping term.",
+            call.=FALSE
     )
     return(NULL)
   }
@@ -251,7 +259,7 @@ predict.bmrf_glmnet <- function(bmrf, go.idx, dfmax) {
   )
 
   if(class(f) == 'try-error') {
-    warning("cv.glmnet fitting not successful")
+    warning("cv.glmnet fitting not successful", call.=FALSE)
     return(NULL)
   }
 
@@ -260,7 +268,7 @@ predict.bmrf_glmnet <- function(bmrf, go.idx, dfmax) {
   names(yhat) = rownames(bmrf@fd);
 
   if(class(yhat) == 'try-error') {
-    warning("cv.glmnet prediction not successful")
+    warning("cv.glmnet prediction not successful", call.=FALSE)
     return(NULL)
   }
 

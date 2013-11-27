@@ -31,10 +31,14 @@ bmrf <- function(
   stopifnot(sum(go.cs >= minGOsize & go.cs <= maxGOsize) > 0)
   go <- go[,go.cs >= minGOsize & go.cs <= maxGOsize]
 
-  ## take the functional domains that are neither very general nor very sparse
-  fd.cs <- colSums(fd)
-  stopifnot(sum(fd.cs >= minGOsize & fd.cs <= maxGOsize) > 0)
-  fd <- fd[,fd.cs >= minFDsize & fd.cs <= maxFDsize]
+  if(all(is.na(fd))) {
+    warning("functional domains are not set", call.=FALSE)
+  } else {
+    ## take the functional domains that are neither very general nor very sparse
+    fd.cs <- colSums(fd)
+    stopifnot(sum(fd.cs >= minGOsize & fd.cs <= maxGOsize) > 0)
+    fd <- fd[,fd.cs >= minFDsize & fd.cs <= maxFDsize]
+  }
 
   u = which(rowSums(go) == 0);
 
@@ -83,6 +87,10 @@ read.net <- function(f, header=FALSE, verbose=FALSE) {
 
 
 read.terms = function(f, p.idcs, header=FALSE, verbose=FALSE) {
+
+  if(is.na(f))
+    return(list(m=Matrix(data=NA), t.idcs=NA))
+
 	data = read.table(f, sep = "\t", header=header)
 
   terms.uniq = sort(levels(data[,2]))
