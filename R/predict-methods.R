@@ -1,20 +1,22 @@
 ## predict using a bmrf object
-predict.bmrf <- function(b, burnin=20, niter=20, file=NULL, format=c("3col", "long"), verbose=FALSE ) {
+predict.bmrf <- function(b, burnin=20, niter=20, file=NULL, format=c("3col", "long", "h5"), verbose=FALSE ) {
 
   format <- match.arg(format)
   o <- options()
 
-  result <- list()
+  result <- NULL
   con <- NULL
 
   ## write header to output file if desired
-  if(!is.null(file)) {
+  if(!is.null(file) && format != "h5") {
     con <- file(file, "w")
     if(format == "long")
       cat("go", paste0("\t", rownames(b@go)), "\n", sep="", file=con)
     else
       cat("", sep="", file=con)
     flush(con)
+  } else {
+    result <- Matrix(0, ncol=ncol(b@go), nrow=nrow(b@go), dimnames=dimnames(b@go))
   }
 
   if(verbose)
@@ -48,7 +50,7 @@ predict.bmrf <- function(b, burnin=20, niter=20, file=NULL, format=c("3col", "lo
     p = .calibrate_logitR(p)
 
     if(is.null(file) || is.null(con)) {
-      result[[i]] <- list(go=term_name, p=p)
+      result[,i] <- p
     } else {
       switch(format,
         "3col" = cat(
@@ -74,6 +76,9 @@ predict.bmrf <- function(b, burnin=20, niter=20, file=NULL, format=c("3col", "lo
 
   if(!is.null(con))
     close(con)
+
+  if(format=="h5" && !is.null(file))
+    .write_h5(file, result)
 
   result
 }
@@ -295,4 +300,15 @@ predict.bmrf_glmnet <- function(bmrf, go.idx, dfmax) {
 	P = P2;
 	return(P);
 
+}
+
+
+.write_h5 <- function(file, m) {
+  if(!require(rhdf5))
+      stop("could not load package rhdf5")
+
+  h5createFile(file)
+  h5write(as.matrix(m),file,"predictions")
+  h5write(dimnames(m)[[1]], file,"pid")
+  h5write(dimnames(m)[[2]], file,"go")
 }

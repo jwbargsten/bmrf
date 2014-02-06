@@ -8,3 +8,4 @@ Maintainer: Joachim Bargsten <wissenschaft@bargsten.org>
 Description: predict biological process with bayesian markov random fields
 License: GPL
 Depends: methods, Matrix, glmnet, mvtnorm, brglm
+Suggests: rhdf5
