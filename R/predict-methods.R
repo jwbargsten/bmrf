@@ -5,13 +5,17 @@ predict.bmrf <- function(b, burnin=20, niter=20, file=NULL, format=c("3col", "lo
   o <- options()
 
   result <- list()
+  con <- NULL
 
   ## write header to output file if desired
-  if(!is.null(file))
+  if(!is.null(file)) {
+    con <- file(file, "w")
     if(format == "long")
-      cat("go", paste0("\t", rownames(b@go)), "\n", sep="", file=file)
+      cat("go", paste0("\t", rownames(b@go)), "\n", sep="", file=con)
     else
-      cat("", sep="", file=file)
+      cat("", sep="", file=con)
+    flush(con)
+  }
 
   if(verbose)
     message(paste("Number of GO-terms to predict: ", ncol(b@go), sep=""))
@@ -43,31 +47,33 @@ predict.bmrf <- function(b, burnin=20, niter=20, file=NULL, format=c("3col", "lo
 
     p = .calibrate_logitR(p)
 
-    if(is.null(file)) {
+    if(is.null(file) || is.null(con)) {
       result[[i]] <- list(go=term_name, p=p)
     } else {
       switch(format,
         "3col" = cat(
             paste(names(p), rep(term_name, length(p)),  p, sep="\t"),
             sep="\n",
-            file=file,
-            append=TRUE
+            file=con
         ),
         "long" = cat(
             colnames(b@go)[i],
             paste0("\t", p),
             "\n",
             sep="",
-            file=file,
-            append=TRUE
+            file=con
         )
       )
+      flush(con)
     }
     if(verbose) cat(".", sep="", file=stderr())
   }
   options(o)
 
   if(verbose) message(paste(" finished\n", sep=""))
+
+  if(!is.null(con))
+    close(con)
 
   result
 }
