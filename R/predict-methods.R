@@ -113,7 +113,9 @@ predict.bmrf_go <- function(bmrf, go.proteins, fd.predicted, burnin, niter, term
 #	Dalpha = glmnetDalpha(L,D, 10)
 	# Initialize MRF parameters
 
+  ## the number of neightbours with label
 	M1 = as.vector(A[knowns,knowns] %*% L[knowns]);
+  ## NS = neighbours
 	NS = as.vector(dA[knowns]);
 	Lk = as.vector(L[knowns])
 	Dalphak = as.vector(Dalpha[knowns]);
