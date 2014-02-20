@@ -122,11 +122,19 @@ read.terms = function(f, p.idcs, header=FALSE, verbose=FALSE) {
 
 setMethod("show", "BMRF", function(object) {
 
+    fivenum_deg <- paste(fivenum(rowSums(object@net)), sep=" ", collapse=" ")
+    diag_sum <- sum(diag(object@net))
+    num_edges <- (sum(object@net > 0)-diag_sum)/2+diag_sum
+
     sep <- "------------------------------------------------------------------------------\n"
     cat("BMRF data set\n")
     cat(sep)
-    cat("         Num. of proteins: ", dim(object@net)[1], "\n", sep="")
-    cat("Num. of unannot. proteins: ", length(object@unknown.idcs), "\n", sep="")
+    cat("         No. of proteins: ", dim(object@net)[1],             "\n", sep="")
+    cat("No. of unannot. proteins: ", length(object@unknown.idcs),    "\n", sep="")
+    cat("      No. of connections: ", num_edges,                      "\n", sep="")
+    cat("\n")
+    cat(" Fivenum of node degrees: ", fivenum_deg,                    "\n", sep="")
+    cat("    Mean of node degrees: ",  mean(rowSums(object@net)),     "\n", sep="")
     cat("\n")
     cat("GO size range: (", object@minGOsize, ",", object@maxGOsize, ")\n", sep="")
     cat("FD size range: (", object@minFDsize, ",", object@maxFDsize, ")\n", sep="")

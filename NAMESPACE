@@ -1,6 +1,6 @@
 exportPattern("^[[:alpha:]]+")
 exportMethods(
-  "show" 
+  "show"
 )
 exportClasses(
   "BMRF" 
