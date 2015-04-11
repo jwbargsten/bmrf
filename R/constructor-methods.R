@@ -86,7 +86,7 @@ read.net <- function(f, header=FALSE, verbose=FALSE) {
 }
 
 
-read.terms = function(f, p.idcs, header=FALSE, verbose=FALSE) {
+read.terms = function(f, p.idcs.net, header=FALSE, verbose=FALSE) {
 
   if(is.na(f))
     return(list(m=Matrix(data=NA), t.idcs=NA))
@@ -101,17 +101,22 @@ read.terms = function(f, p.idcs, header=FALSE, verbose=FALSE) {
   protein.ids = as.character(data[,1]);
   terms = as.character(data[,2]);
 
+  p.ids.error <- setdiff(protein.ids, names(p.idcs.net))
+
+  if(length(p.ids.error) > 0)
+    stop("some IDs are not in the network: ", paste0(p.ids.error, collapse=", "))
+
 	L = sparseMatrix(
-    i = p.idcs[protein.ids],
+    i = p.idcs.net[protein.ids],
     j = t.idcs[terms],
     x = 1,
-    dims = c(length(p.idcs), length(t.idcs))
+    dims = c(length(p.idcs.net), length(t.idcs))
   )
 
   ## In case it is not binary, binarize it.
 	L@x[] = 1
 
-	rownames(L) = names(p.idcs)
+	rownames(L) = names(p.idcs.net)
 	colnames(L) = names(t.idcs)
 
   if(verbose)
